@@ -20,9 +20,9 @@
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    overflow-x: hidden;
-    overscroll-behavior: none;
-    touch-action: manipulation;
+    overflow-x: clip;
+    overflow-y: auto;
+    overscroll-behavior-y: none;
   }
   body {
     padding-bottom: env(safe-area-inset-bottom);
@@ -69,10 +69,16 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 22px;
+    font-size: 24px;
     font-weight: 900;
     color: #ff5000;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    text-shadow: 0 0 10px rgba(255, 80, 0, 0.6), 0 1px 2px rgba(255, 80, 0, 0.3);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15), inset 0 0 0 1.5px rgba(255,80,0,0.25);
+    animation: logoPulse 2.5s ease-in-out infinite;
+  }
+  @keyframes logoPulse {
+    0%, 100% { transform: scale(1); text-shadow: 0 0 10px rgba(255, 80, 0, 0.6), 0 1px 2px rgba(255, 80, 0, 0.3); }
+    50% { transform: scale(1.08); text-shadow: 0 0 18px rgba(255, 80, 0, 0.9), 0 1px 3px rgba(255, 80, 0, 0.5); }
   }
   .logo-text {
     color: #fff;
@@ -137,20 +143,20 @@
   .draw-info .current { color: #ff5000; font-weight: 800; font-size: 16px; }
   .draw-info .special { color: #ff5000; font-weight: 800; font-size: 16px; }
 
-  /* 球区域 - 严格一行，不换行，overflow:visible确保球放大不被裁剪 */
+  /* 球区域 - 严格一行，左右留足边距不贴边，overflow:hidden确保不超框 */
   .balls-area {
     display: flex;
     justify-content: center;
     align-items: center;
     flex-wrap: nowrap;
     gap: 8px;
-    padding: 32px 20px;
+    padding: 24px 32px;
     background: #fff;
     border-radius: 16px;
     box-shadow: 0 2px 12px rgba(0,0,0,0.05);
     margin-bottom: 16px;
-    min-height: 140px;
-    overflow: visible;
+    min-height: 120px;
+    overflow: hidden;
     box-sizing: border-box;
   }
 
@@ -293,7 +299,7 @@
   }
   @keyframes ballResult {
     0% { transform: scale(0.5); opacity: 0; }
-    50% { transform: scale(1.15); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 1; }
     100% { transform: scale(1); opacity: 1; }
   }
   .ball.result .ball-num {
@@ -318,8 +324,8 @@
   }
   @keyframes ballResultSpecial {
     0% { transform: scale(0.3) rotate(-180deg); opacity: 0; }
-    50% { transform: scale(1.3) rotate(10deg); }
-    75% { transform: scale(0.9) rotate(-5deg); }
+    50% { transform: scale(1.2) rotate(10deg); }
+    75% { transform: scale(0.95) rotate(-5deg); }
     100% { transform: scale(1) rotate(0deg); opacity: 1; }
   }
 
@@ -513,23 +519,23 @@
     100% { width: 100px; height: 100px; opacity: 0; border-width: 1px; }
   }
 
-  /* 小屏适配 - 确保7球严格一行 */
-  @media (max-width: 400px) {
+  /* 大屏手机适配（420-480px） */
+  @media (max-width: 480px) {
     .ball { width: 44px; height: 44px; font-size: 17px; }
     .ball.waiting .ball-num { font-size: 20px; }
     .ball-zodiac { font-size: 9px; }
-    .balls-area { gap: 5px; padding: 24px 12px; min-height: 120px; }
+    .balls-area { gap: 5px; padding: 20px 24px; min-height: 110px; }
     .ball-sep { font-size: 24px; transform: translateY(-8px); margin: 0 2px; }
     .ball-label { font-size: 9px; }
     .btn-large { padding: 12px 36px; font-size: 16px; min-width: 160px; }
   }
 
-  /* 中屏适配（360-380px，大多数安卓手机） */
-  @media (max-width: 380px) {
+  /* 中屏手机适配（380-420px） */
+  @media (max-width: 420px) {
     .ball { width: 40px; height: 40px; font-size: 16px; }
     .ball.waiting .ball-num { font-size: 18px; }
     .ball-zodiac { font-size: 8px; }
-    .balls-area { gap: 4px; padding: 24px 10px; min-height: 115px; }
+    .balls-area { gap: 4px; padding: 20px 20px; min-height: 105px; }
     .ball-sep { font-size: 22px; transform: translateY(-7px); margin: 0 2px; }
     .ball-label { font-size: 8px; }
     .btn-large { padding: 11px 32px; font-size: 15px; min-width: 150px; }
@@ -537,20 +543,33 @@
     .history-balls { gap: 2px; }
   }
 
-  /* 超小屏适配（320px以下） */
-  @media (max-width: 340px) {
-    .ball { width: 38px; height: 38px; font-size: 15px; }
-    .ball.waiting .ball-num { font-size: 18px; }
-    .ball-zodiac { font-size: 8px; }
-    .balls-area { gap: 3px; padding: 20px 10px; min-height: 110px; }
-    .ball-sep { font-size: 20px; transform: translateY(-7px); margin: 0 2px; }
-    .ball-label { font-size: 8px; }
-    .btn-large { padding: 10px 28px; font-size: 15px; min-width: 140px; }
+  /* 普通手机适配（350-380px，大多数安卓） */
+  @media (max-width: 380px) {
+    .ball { width: 36px; height: 36px; font-size: 14px; }
+    .ball.waiting .ball-num { font-size: 16px; }
+    .ball-zodiac { font-size: 7px; }
+    .balls-area { gap: 3px; padding: 18px 18px; min-height: 100px; }
+    .ball-sep { font-size: 20px; transform: translateY(-6px); margin: 0 2px; }
+    .ball-label { font-size: 7px; }
+    .btn-large { padding: 10px 28px; font-size: 14px; min-width: 140px; }
     .history-ball { width: 18px; height: 18px; font-size: 9px; }
     .history-balls { gap: 2px; }
-    .history-index { font-size: 10px; min-width: 28px; }
-    .history-time { font-size: 9px; min-width: 44px; }
-    .history-item { gap: 6px; padding: 8px; }
+  }
+
+  /* 小屏手机适配（350px以下） */
+  @media (max-width: 350px) {
+    .ball { width: 32px; height: 32px; font-size: 13px; }
+    .ball.waiting .ball-num { font-size: 14px; }
+    .ball-zodiac { font-size: 6px; }
+    .balls-area { gap: 2px; padding: 16px 16px; min-height: 95px; }
+    .ball-sep { font-size: 18px; transform: translateY(-5px); margin: 0 1px; }
+    .ball-label { font-size: 6px; }
+    .btn-large { padding: 9px 24px; font-size: 13px; min-width: 130px; }
+    .history-ball { width: 16px; height: 16px; font-size: 8px; }
+    .history-balls { gap: 1px; }
+    .history-index { font-size: 10px; min-width: 26px; }
+    .history-time { font-size: 9px; min-width: 42px; }
+    .history-item { gap: 5px; padding: 7px; }
   }
 
   /* 横屏适配 */
