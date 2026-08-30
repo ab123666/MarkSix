@@ -822,12 +822,14 @@
   function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
   function pad(n) { return n < 10 ? '0' + n : '' + n; }
 
-  // 今日幸运数字：所有(月,日,周几)组合按乘积排序后轮流分配给1-49（完全均匀）
+  // 今日幸运数字：只保留真实存在的日期，按乘积排序后轮流分配给1-49（完全均匀）
   var luckyLookup = {};
   (function buildLuckyLookup() {
+    // 每月的真实天数
+    var daysInMonth = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
     var combos = [];
     for (var m = 1; m <= 12; m++) {
-      for (var d = 1; d <= 31; d++) {
+      for (var d = 1; d <= daysInMonth[m - 1]; d++) {
         for (var w = 1; w <= 7; w++) {
           combos.push({m: m, d: d, w: w, p: m * d * w});
         }
