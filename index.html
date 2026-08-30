@@ -822,14 +822,30 @@
   function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
   function pad(n) { return n < 10 ? '0' + n : '' + n; }
 
-  // 今日幸运数字：月×日×周几 直接取模映射到1-49
+  // 今日幸运数字：所有(月,日,周几)组合按乘积排序后轮流分配给1-49（最均匀且不连续）
+  var luckyLookup = {};
+  (function buildLuckyLookup() {
+    var combos = [];
+    for (var m = 1; m <= 12; m++) {
+      for (var d = 1; d <= 31; d++) {
+        for (var w = 1; w <= 7; w++) {
+          combos.push({m: m, d: d, w: w, p: m * d * w});
+        }
+      }
+    }
+    combos.sort(function(a, b) { return a.p - b.p; });
+    combos.forEach(function(c, i) {
+      luckyLookup[c.m + '_' + c.d + '_' + c.w] = (i % 49) + 1;
+    });
+  })();
+
   function getTodayLuckyNumber() {
     var now = new Date();
-    var month = now.getMonth() + 1;   // 1-12
-    var day = now.getDate();           // 1-31
-    var weekday = now.getDay();        // 0-6 (周日=0)
-    var week = weekday === 0 ? 7 : weekday;  // 转成 1-7
-    return (month * day * week) % 49 + 1;
+    var month = now.getMonth() + 1;
+    var day = now.getDate();
+    var weekday = now.getDay();
+    var week = weekday === 0 ? 7 : weekday;
+    return luckyLookup[month + '_' + day + '_' + week];
   }
 
   function renderTodayLucky() {
