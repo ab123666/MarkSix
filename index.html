@@ -29,9 +29,7 @@
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    overflow-x: clip;
     overflow-y: auto;
-    overscroll-behavior-y: none;
   }
   body {
     padding-bottom: env(safe-area-inset-bottom);
@@ -49,7 +47,6 @@
   /* 顶部导航栏 */
   .header {
     background: linear-gradient(135deg, #c0392b 0%, #e74c3c 50%, #ee5a6f 100%);
-    transform: translateZ(0);
     background-image: linear-gradient(135deg, #c0392b 0%, #e74c3c 50%, #ee5a6f 100%), radial-gradient(circle at 15% 50%, rgba(255,255,255,0.08) 0%, transparent 25%), radial-gradient(circle at 85% 30%, rgba(255,255,255,0.06) 0%, transparent 20%);
     padding: env(safe-area-inset-top) 0 0 0;
     position: sticky;
@@ -192,7 +189,6 @@
     position: relative;
     transition: transform 0.15s ease;
     will-change: transform;
-    contain: layout style;
   }
 
   /* 普通球 - 橙色 */
