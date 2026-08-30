@@ -758,17 +758,13 @@
 
   // 多时机激活音频（微信端尤其需要）
   function bindAudioEvents() {
-    var events = ['click', 'touchstart', 'touchmove', 'scroll'];
+    var events = ['click', 'touchstart', 'mouseover', 'scroll', 'touchmove'];
     events.forEach(function(evt) {
       var target = (evt === 'scroll') ? window : document;
       target.addEventListener(evt, wakeAudio, {passive: true});
     });
     document.addEventListener('visibilitychange', function() {
-      if (!document.hidden) {
-        wakeAudio();
-      } else if (audioCtx && audioCtx.state === 'running') {
-        audioCtx.suspend(); // 页面隐藏时暂停，节省性能
-      }
+      if (!document.hidden) wakeAudio();
     });
   }
 
@@ -1028,7 +1024,7 @@
     setTimeout(function() { box.remove(); }, 900);
   }
 
-  // 单个球开奖
+  // 单个球开奖（预生成序列方案：最终结果100%由洗牌算法决定）
   function drawBall(ballObj, finalValue, ballIndex) {
     return new Promise(function(resolve) {
       var ballEl = ballObj.el;
@@ -1044,16 +1040,25 @@
       ballEl.classList.remove('waiting');
       ballEl.classList.add('rolling');
 
-      // 滚动数字：保证每帧和上一帧不同，但可以隔代相同（6→非6→6）
-      var lastRollNum = 0;
-      function nextRollNum() {
+      // ===== 预生成完整滚动序列（从最终结果往前推，正序播放）=====
+      // 最终结果在洗牌算法阶段已确定，这里只生成视觉用的"假数字"序列
+      var FAST_COUNT = Math.floor(2000 / CONFIG.ROLL_SPEED); // 快速滚动次数
+      var SLOW_COUNT = 5; // 减速滚动次数
+      var TOTAL_COUNT = FAST_COUNT + SLOW_COUNT;
+      var rollSequence = new Array(TOTAL_COUNT);
+
+      // 从后往前生成：最后一帧 ≠ finalValue，每帧 ≠ 后一帧
+      var prev = finalValue;
+      for (var i = TOTAL_COUNT - 1; i >= 0; i--) {
         var n;
         do {
           n = randInt(CONFIG.MIN_NUMBER, CONFIG.MAX_NUMBER);
-        } while (n === lastRollNum);
-        lastRollNum = n;
-        return n;
+        } while (n === prev);
+        rollSequence[i] = n;
+        prev = n;
       }
+
+      var seqIdx = 0; // 当前播放到序列的位置
 
       // 统一更新函数：数字、生肖、颜色、跳动、音效 一次完成
       var bounceCount = 0;
@@ -1076,102 +1081,109 @@
         }, 40);
       }
 
-      // 快速滚动阶段（2秒，50ms/次 = 40次）
+      // 快速滚动阶段（精确播放FAST_COUNT次）
       var fastRoll = setInterval(function() {
-        var n = nextRollNum();
-        updateBall(n, rand(1.05, 1.12));
+        updateBall(rollSequence[seqIdx], rand(1.05, 1.12));
+        seqIdx++;
+        if (seqIdx >= FAST_COUNT) {
+          clearInterval(fastRoll);
+          startSlowRoll();
+        }
       }, CONFIG.ROLL_SPEED);
 
-      setTimeout(function() {
-        clearInterval(fastRoll);
-        // 减速阶段（逐渐变慢，共约1秒）
-        var slowSpeeds = [120, 160, 200, 260, 340];
-        var slowScales = [1.1, 1.08, 1.06, 1.04, 1.02];
-        var slowIdx = 0;
-        function slowRoll() {
-          if (slowIdx >= slowSpeeds.length) {
-            // 最终结果
-            ballEl.classList.remove('rolling');
-            ballEl.style.transform = '';
-            ballEl.classList.add('result');
-            // 设置最终颜色
-            ballEl.classList.remove('color-red', 'color-blue', 'color-green');
-            ballEl.classList.add('color-' + finalColor);
-            numEl.textContent = finalValue;
-            zodiacEl.textContent = finalZodiac;
-            ballObj.value = finalValue;
-            createParticles(ballEl, ballObj.isSpecial);
-            // 播放结果音效
-            playResultSound();
-            if (ballObj.isSpecial) {
-              drawInfo.innerHTML = '🎉 特码开出 <span class="special">' + finalValue + ' ' + finalZodiac + '</span>！';
-            } else {
-              drawInfo.innerHTML = '第' + (ballIndex + 1) + '个号码开出 <span class="current">' + finalValue + ' ' + finalZodiac + '</span>';
-            }
-            safeTimeout(resolve, 300);
-            return;
+      // 减速阶段（逐渐变慢，共SLOW_COUNT次）
+      var slowSpeeds = [120, 160, 200, 260, 340];
+      var slowScales = [1.1, 1.08, 1.06, 1.04, 1.02];
+      var slowIdx = 0;
+      function startSlowRoll() {
+        if (slowIdx >= SLOW_COUNT) {
+          // 最终结果（洗牌算法确定的值，不受滚动序列影响）
+          ballEl.classList.remove('rolling');
+          ballEl.style.transform = '';
+          ballEl.classList.add('result');
+          // 设置最终颜色
+          ballEl.classList.remove('color-red', 'color-blue', 'color-green');
+          ballEl.classList.add('color-' + finalColor);
+          numEl.textContent = finalValue;
+          zodiacEl.textContent = finalZodiac;
+          ballObj.value = finalValue;
+          createParticles(ballEl, ballObj.isSpecial);
+          // 播放结果音效
+          playResultSound();
+          if (ballObj.isSpecial) {
+            drawInfo.innerHTML = '🎉 特码开出 <span class="special">' + finalValue + ' ' + finalZodiac + '</span>！';
+          } else {
+            drawInfo.innerHTML = '第' + (ballIndex + 1) + '个号码开出 <span class="current">' + finalValue + ' ' + finalZodiac + '</span>';
           }
-          var n = nextRollNum();
-          // 最后一帧：确保不等于最终结果，避免"没变化"的视觉感
-          if (slowIdx === slowSpeeds.length - 1 && n === finalValue) {
-            do {
-              n = randInt(CONFIG.MIN_NUMBER, CONFIG.MAX_NUMBER);
-            } while (n === finalValue || n === lastRollNum);
-            lastRollNum = n;
-          }
-          updateBall(n, slowScales[slowIdx]);
-          slowIdx++;
-          setTimeout(slowRoll, slowSpeeds[slowIdx - 1]);
+          safeTimeout(resolve, 300);
+          return;
         }
-        slowRoll();
-      }, 2000);
+        updateBall(rollSequence[seqIdx], slowScales[slowIdx]);
+        seqIdx++;
+        slowIdx++;
+        setTimeout(startSlowRoll, slowSpeeds[slowIdx - 1]);
+      }
     });
   }
 
   // 顺序开奖
   function sequentialDraw() {
     if (isDrawing) return;
-    wakeAudio(); // 确保音频已激活（微信端尤其重要）
-    isDrawing = true;
-    drawBtn.disabled = true;
-    drawBtn.classList.add('drawing');
-    drawBtn.textContent = '开奖中...';
-    resetBtn.disabled = true;
-    clearBtn.disabled = true;
 
-    initBalls();
+    // 音频就绪后开始开奖（有静音保活，通常都是running状态）
+    function startDraw() {
+      isDrawing = true;
+      drawBtn.disabled = true;
+      drawBtn.classList.add('drawing');
+      drawBtn.textContent = '开奖中...';
+      resetBtn.disabled = true;
+      clearBtn.disabled = true;
 
-    setTimeout(function() {
-      var numbers = generateNumbers();
-      var allValues = numbers.normal.concat([numbers.special]);
+      initBalls();
 
-      var idx = 0;
-      function next() {
-        if (idx >= balls.length) {
-          setTimeout(function() {
-            drawInfo.innerHTML = '🎉 开奖完成！';
-            saveHistory(numbers);
-            renderHistory();
-            isDrawing = false;
-            drawBtn.disabled = false;
-            drawBtn.classList.remove('drawing');
-            drawBtn.textContent = '再开一次';
-            resetBtn.disabled = false;
-            clearBtn.disabled = false;
-          }, 400);
-          return;
-        }
-        drawBall(balls[idx], allValues[idx], idx).then(function() {
-          idx++;
-          if (idx < balls.length) {
-            setTimeout(next, CONFIG.BETWEEN_DELAY);
-          } else {
-            next();
+      setTimeout(function() {
+        var numbers = generateNumbers();
+        var allValues = numbers.normal.concat([numbers.special]);
+
+        var idx = 0;
+        function next() {
+          if (idx >= balls.length) {
+            setTimeout(function() {
+              drawInfo.innerHTML = '🎉 开奖完成！';
+              saveHistory(numbers);
+              renderHistory();
+              isDrawing = false;
+              drawBtn.disabled = false;
+              drawBtn.classList.remove('drawing');
+              drawBtn.textContent = '再开一次';
+              resetBtn.disabled = false;
+              clearBtn.disabled = false;
+            }, 400);
+            return;
           }
-        });
+          drawBall(balls[idx], allValues[idx], idx).then(function() {
+            idx++;
+            if (idx < balls.length) {
+              setTimeout(next, CONFIG.BETWEEN_DELAY);
+            } else {
+              next();
+            }
+          });
+        }
+        next();
+      }, 200);
+    }
+
+    if (audioCtx && audioCtx.state === 'running') {
+      startDraw();
+    } else {
+      wakeAudio();
+      if (audioCtx) {
+        audioCtx.resume().then(startDraw).catch(startDraw);
+      } else {
+        startDraw();
       }
-      next();
-    }, 200);
+    }
   }
 
   // 重置
