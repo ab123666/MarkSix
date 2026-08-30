@@ -1099,6 +1099,10 @@
         seqIdx++;
         if (seqIdx >= FAST_COUNT) {
           clearInterval(fastRoll);
+          // 快速滚动2秒结束后，前一个球的光环动画已自然结束，清理它减少GPU压力（不影响视觉）
+          if (ballIndex > 0 && balls[ballIndex - 1]) {
+            balls[ballIndex - 1].el.classList.remove('result');
+          }
           startSlowRoll();
         }
       }, CONFIG.ROLL_SPEED);
@@ -1176,10 +1180,6 @@
               clearBtn.disabled = false;
             }, 400);
             return;
-          }
-          // 清理前前个及更早的已播完动画的球（保留前一个，让它的光环自然淡出）
-          for (var ci = 0; ci < idx - 1; ci++) {
-            balls[ci].el.classList.remove('result');
           }
           drawBall(balls[idx], allValues[idx], idx, drawnValues).then(function() {
             drawnValues.push(allValues[idx]); // 开出后加入已开集合
