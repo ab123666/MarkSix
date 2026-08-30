@@ -6,10 +6,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#ff5000">
-<title>幸运数字</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23ff5000'/><text x='50' y='68' font-size='55' font-weight='900' fill='white' text-anchor='middle' font-family='Arial'>M</text></svg>">
-<meta name="application-name" content="MarkSix">
-<meta name="apple-mobile-web-app-title" content="MarkSix">
+<title>琼花开奖器</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23ff5000'/><text x='50' y='70' font-size='55' font-weight='900' fill='white' text-anchor='middle' font-family='Arial, sans-serif'>花</text></svg>">
+<meta name="application-name" content="琼花开奖器">
+<meta name="apple-mobile-web-app-title" content="琼花开奖器">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
   html, body {
@@ -137,19 +137,19 @@
   .draw-info .current { color: #ff5000; font-weight: 800; font-size: 16px; }
   .draw-info .special { color: #ff5000; font-weight: 800; font-size: 16px; }
 
-  /* 球区域 - 严格一行，不换行，无滚动条 */
+  /* 球区域 - 严格一行，不换行，无滚动条，上下左右留足空间避免球被裁剪 */
   .balls-area {
     display: flex;
     justify-content: center;
     align-items: center;
     flex-wrap: nowrap;
     gap: 8px;
-    padding: 24px 12px;
+    padding: 32px 20px;
     background: #fff;
     border-radius: 16px;
     box-shadow: 0 2px 12px rgba(0,0,0,0.05);
     margin-bottom: 16px;
-    min-height: 120px;
+    min-height: 140px;
     overflow: hidden;
     box-sizing: border-box;
   }
@@ -335,10 +335,11 @@
     color: #1a1a1a;
     font-weight: 900;
     margin: 0 4px;
-    align-self: flex-start;
-    margin-top: 14px;
+    align-self: center;
+    transform: translateY(-9px);
     text-shadow: none;
     line-height: 1;
+    flex-shrink: 0;
   }
 
   /* 按钮区 */
@@ -416,20 +417,22 @@
   }
   .history-balls {
     display: flex;
-    gap: 5px;
-    flex-wrap: wrap;
+    gap: 3px;
+    flex-wrap: nowrap;
     flex: 1;
+    min-width: 0;
   }
   .history-ball {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 800;
     color: #fff;
+    flex-shrink: 0;
   }
   .history-ball.normal {
     background: radial-gradient(circle at 30% 30%, #ff8c00, #ff5000);
@@ -515,8 +518,8 @@
     .ball { width: 44px; height: 44px; font-size: 17px; }
     .ball.waiting .ball-num { font-size: 20px; }
     .ball-zodiac { font-size: 9px; }
-    .balls-area { gap: 5px; padding: 16px 8px; }
-    .ball-sep { font-size: 24px; margin-top: 10px; }
+    .balls-area { gap: 5px; padding: 24px 12px; min-height: 120px; }
+    .ball-sep { font-size: 24px; transform: translateY(-8px); margin: 0 2px; }
     .ball-label { font-size: 9px; }
     .btn-large { padding: 12px 36px; font-size: 16px; min-width: 160px; }
   }
@@ -526,10 +529,15 @@
     .ball { width: 38px; height: 38px; font-size: 15px; }
     .ball.waiting .ball-num { font-size: 18px; }
     .ball-zodiac { font-size: 8px; }
-    .balls-area { gap: 3px; padding: 14px 6px; }
-    .ball-sep { font-size: 20px; margin-top: 8px; margin: 0 2px; }
+    .balls-area { gap: 3px; padding: 20px 10px; min-height: 110px; }
+    .ball-sep { font-size: 20px; transform: translateY(-7px); margin: 0 2px; }
     .ball-label { font-size: 8px; }
     .btn-large { padding: 10px 28px; font-size: 15px; min-width: 140px; }
+    .history-ball { width: 18px; height: 18px; font-size: 9px; }
+    .history-balls { gap: 2px; }
+    .history-index { font-size: 10px; min-width: 28px; }
+    .history-time { font-size: 9px; min-width: 44px; }
+    .history-item { gap: 6px; padding: 8px; }
   }
 
   /* 横屏适配 */
@@ -546,9 +554,9 @@
 <header class="header">
   <div class="header-inner">
     <div class="logo">
-      <div class="logo-icon">数</div>
+      <div class="logo-icon">花</div>
       <div>
-        <div class="logo-text">幸运数字</div>
+        <div class="logo-text">琼花开奖器</div>
       </div>
     </div>
   </div>
@@ -596,62 +604,108 @@
   var history = [];
   var soundEnabled = true;
   var audioCtx = null;
+  var keepAliveStarted = false;
 
   // DOM元素
   var drawBtn, resetBtn, clearBtn, ballsArea, drawInfo, historyList;
 
-  // 初始化音频上下文（需要用户交互后才能创建）
-  function initAudio() {
+  // ===== 音频系统（静音保活 + 多时机激活 + 微信端优化） =====
+
+  // 启动静音保活：持续播放gain极小的振荡器，防止浏览器/微信挂起AudioContext
+  function startKeepAlive() {
+    if (keepAliveStarted || !audioCtx) return;
+    keepAliveStarted = true;
+    try {
+      var osc = audioCtx.createOscillator();
+      var gain = audioCtx.createGain();
+      gain.gain.value = 0.00001; // 极小音量，人耳听不到，但浏览器认为是真正音频播放
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+    } catch(e) {}
+  }
+
+  // 唤醒音频：resume + 启动保活（首次用户交互时调用）
+  function wakeAudio() {
     if (!audioCtx) {
       try {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      } catch(e) {
-        audioCtx = null;
-      }
+      } catch(e) { audioCtx = null; }
     }
-    if (audioCtx && audioCtx.state === 'suspended') {
-      audioCtx.resume();
+    if (!audioCtx) return;
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume().then(startKeepAlive).catch(startKeepAlive);
+    } else {
+      startKeepAlive();
     }
+  }
+
+  // 安全播放：确保AudioContext恢复后再播放
+  function safePlay(playFn) {
+    if (!audioCtx) return;
+    if (audioCtx.state === 'running') {
+      playFn();
+    } else {
+      audioCtx.resume().then(playFn).catch(function() { setTimeout(playFn, 10); });
+    }
+  }
+
+  // 多时机激活音频（微信端尤其需要）
+  function bindAudioEvents() {
+    var events = ['click', 'touchstart', 'touchmove', 'scroll'];
+    events.forEach(function(evt) {
+      var target = (evt === 'scroll') ? window : document;
+      target.addEventListener(evt, wakeAudio, {passive: true});
+    });
+    document.addEventListener('visibilitychange', function() {
+      if (!document.hidden) wakeAudio();
+    });
   }
 
   // 播放滚动音效（短促嘀声）
   function playRollSound() {
-    if (!soundEnabled || !audioCtx) return;
-    try {
-      var osc = audioCtx.createOscillator();
-      var gain = audioCtx.createGain();
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.frequency.value = 880 + Math.random() * 200;
-      osc.type = 'sine';
-      gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
-      osc.start(audioCtx.currentTime);
-      osc.stop(audioCtx.currentTime + 0.05);
-    } catch(e) {}
-  }
-
-  // 播放结果音效（响亮叮声，C大调和弦，所有数字统一）
-  function playResultSound() {
-    if (!soundEnabled || !audioCtx) return;
-    try {
-      var frequencies = [523.25, 659.25, 783.99, 1046.50]; // C大调和弦
-      var volume = 0.18;
-      frequencies.forEach(function(freq, i) {
+    if (!soundEnabled) return;
+    safePlay(function() {
+      if (!audioCtx || audioCtx.state !== 'running') return;
+      try {
         var osc = audioCtx.createOscillator();
         var gain = audioCtx.createGain();
         osc.connect(gain);
         gain.connect(audioCtx.destination);
-        osc.frequency.value = freq;
+        osc.frequency.value = 880 + Math.random() * 200;
         osc.type = 'sine';
-        var startTime = audioCtx.currentTime + i * 0.03;
-        gain.gain.setValueAtTime(0, startTime);
-        gain.gain.linearRampToValueAtTime(volume, startTime + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.5);
-        osc.start(startTime);
-        osc.stop(startTime + 0.5);
-      });
-    } catch(e) {}
+        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+        osc.start(audioCtx.currentTime);
+        osc.stop(audioCtx.currentTime + 0.05);
+      } catch(e) {}
+    });
+  }
+
+  // 播放结果音效（响亮叮声，C大调和弦，所有数字统一）
+  function playResultSound() {
+    if (!soundEnabled) return;
+    safePlay(function() {
+      if (!audioCtx || audioCtx.state !== 'running') return;
+      try {
+        var frequencies = [523.25, 659.25, 783.99, 1046.50]; // C大调和弦
+        var volume = 0.18;
+        frequencies.forEach(function(freq, i) {
+          var osc = audioCtx.createOscillator();
+          var gain = audioCtx.createGain();
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.frequency.value = freq;
+          osc.type = 'sine';
+          var startTime = audioCtx.currentTime + i * 0.03;
+          gain.gain.setValueAtTime(0, startTime);
+          gain.gain.linearRampToValueAtTime(volume, startTime + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.5);
+          osc.start(startTime);
+          osc.stop(startTime + 0.5);
+        });
+      } catch(e) {}
+    });
   }
 
   // 工具函数
@@ -878,7 +932,7 @@
   // 顺序开奖
   function sequentialDraw() {
     if (isDrawing) return;
-    initAudio(); // 初始化音频上下文（需要用户交互）
+    wakeAudio(); // 确保音频已激活（微信端尤其重要）
     isDrawing = true;
     drawBtn.disabled = true;
     drawBtn.classList.add('drawing');
@@ -984,6 +1038,12 @@
     ballsArea = document.getElementById('ballsArea');
     drawInfo = document.getElementById('drawInfo');
     historyList = document.getElementById('historyList');
+
+    // 预创建AudioContext（首次交互时只需resume，减少首次点击延迟）
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    } catch(e) { audioCtx = null; }
+    bindAudioEvents(); // 多时机激活音频（微信端优化）
 
     loadHistory();
     initBalls();
