@@ -663,7 +663,7 @@
   <div class="today-lucky" id="todayLucky">
     <div class="today-lucky-date" id="todayDate"></div>
     <div class="today-lucky-number">
-      <span class="today-lucky-label">今日幸运数字</span>
+      <span class="today-lucky-label">今日幸运号码</span>
       <div class="today-lucky-value" id="todayLuckyNum"></div>
     </div>
   </div>
@@ -960,7 +960,7 @@
     var colors = isSpecial
       ? ['#ffd700', '#ff8c00', '#ffffff', '#ff6b6b']
       : ['#ff8c00', '#ffb700', '#ffffff', '#ff5000'];
-    var count = isSpecial ? 14 : 10;
+    var count = isSpecial ? 11 : 10;
     var frag = document.createDocumentFragment();
     for (var i = 0; i < count; i++) {
       var p = document.createElement('div');
@@ -1027,7 +1027,7 @@
   }
 
   // 单个球开奖（预生成序列方案：最终结果100%由洗牌算法决定）
-  function drawBall(ballObj, finalValue, ballIndex) {
+  function drawBall(ballObj, finalValue, ballIndex, excludedValues) {
     return new Promise(function(resolve) {
       var ballEl = ballObj.el;
       var timers = [];
@@ -1049,13 +1049,18 @@
       var TOTAL_COUNT = FAST_COUNT + SLOW_COUNT;
       var rollSequence = new Array(TOTAL_COUNT);
 
-      // 从后往前生成：最后一帧 ≠ finalValue，每帧 ≠ 后一帧
-      var prev = finalValue;
+      // 禁止出现的数字：已开出的号码 + 当前最终结果
+      var forbidden = {};
+      for (var ei = 0; ei < excludedValues.length; ei++) forbidden[excludedValues[ei]] = true;
+      forbidden[finalValue] = true;
+
+      // 从后往前生成：相邻帧不同，且不出现禁止数字（其余可重复）
+      var prev = 0;
       for (var i = TOTAL_COUNT - 1; i >= 0; i--) {
         var n;
         do {
           n = randInt(CONFIG.MIN_NUMBER, CONFIG.MAX_NUMBER);
-        } while (n === prev);
+        } while (forbidden[n] || n === prev);
         rollSequence[i] = n;
         prev = n;
       }
@@ -1149,6 +1154,7 @@
       setTimeout(function() {
         var numbers = generateNumbers();
         var allValues = numbers.normal.concat([numbers.special]);
+        var drawnValues = []; // 已经开出的号码，滚动时需要排除
 
         var idx = 0;
         function next() {
@@ -1166,7 +1172,8 @@
             }, 400);
             return;
           }
-          drawBall(balls[idx], allValues[idx], idx).then(function() {
+          drawBall(balls[idx], allValues[idx], idx, drawnValues).then(function() {
+            drawnValues.push(allValues[idx]); // 开出后加入已开集合
             idx++;
             if (idx < balls.length) {
               setTimeout(next, CONFIG.BETWEEN_DELAY);
