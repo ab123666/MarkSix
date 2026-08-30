@@ -822,7 +822,7 @@
   function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
   function pad(n) { return n < 10 ? '0' + n : '' + n; }
 
-  // 今日幸运数字：所有(月,日,周几)组合按乘积排序后轮流分配给1-49（最均匀且不连续）
+  // 今日幸运数字：所有(月,日,周几)组合按乘积排序后轮流分配给1-49（完全均匀）
   var luckyLookup = {};
   (function buildLuckyLookup() {
     var combos = [];
