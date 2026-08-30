@@ -189,20 +189,20 @@
   }
   .draw-info .current { color: #e74c3c; font-weight: 800; font-size: 16px; }
   .draw-info .special { color: #e74c3c; font-weight: 800; font-size: 16px; }
-  /* 球区域 - 严格一行，左右留足边距不贴边，overflow:hidden确保不超框 */
+  /* 球区域 - 严格一行，左右留足边距不贴边，overflow:visible让光晕显示 */
   .balls-area {
     display: flex;
     justify-content: center;
     align-items: center;
     flex-wrap: nowrap;
     gap: 8px;
-    padding: 18px 32px;
+    padding: 24px 40px;
     background: #fffafa;
     border-radius: 16px;
     box-shadow: 0 2px 12px rgba(0,0,0,0.05), inset 0 0 0 1px rgba(231,76,60,0.1);
     margin-bottom: 16px;
     min-height: 100px;
-    overflow: hidden;
+    overflow: visible;
     box-sizing: border-box;
   }
   /* 开奖按钮区域 */
