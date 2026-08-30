@@ -1172,6 +1172,10 @@
             }, 400);
             return;
           }
+          // 清理前前个及更早的已播完动画的球（保留前一个，让它的光环自然淡出）
+          for (var ci = 0; ci < idx - 1; ci++) {
+            balls[ci].el.classList.remove('result');
+          }
           drawBall(balls[idx], allValues[idx], idx, drawnValues).then(function() {
             drawnValues.push(allValues[idx]); // 开出后加入已开集合
             idx++;
