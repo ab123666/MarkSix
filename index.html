@@ -788,15 +788,20 @@
     });
   }
 
-  // 播放结果音效（响亮叮声，C大调和弦，所有数字统一），delay为预调度延迟（秒）
-  function playResultSound(delay) {
+  // 播放结果音效（普通球C大调和弦，特码高八度更清脆），delay为预调度延迟（秒）
+  function playResultSound(delay, isSpecial) {
     if (!soundEnabled) return;
     delay = delay || 0;
     safePlay(function() {
       if (!audioCtx || audioCtx.state !== 'running') return;
       try {
-        var frequencies = [523.25, 659.25, 783.99, 1046.50]; // C大调和弦
-        var volume = 0.18;
+        // 特码用高八度，更短衰减，更清脆
+        var frequencies = isSpecial
+          ? [1046.50, 1318.51, 1567.98, 2093.00, 2637.02]  // 高八度C大调+高音，更清脆
+          : [523.25, 659.25, 783.99, 1046.50];             // 普通C大调和弦
+        var volume = isSpecial ? 0.16 : 0.18;
+        var noteGap = isSpecial ? 0.02 : 0.03;
+        var decay = isSpecial ? 0.35 : 0.5;  // 特码衰减更短，更清脆
         var baseTime = audioCtx.currentTime + delay;
         frequencies.forEach(function(freq, i) {
           var osc = audioCtx.createOscillator();
@@ -804,13 +809,13 @@
           osc.connect(gain);
           gain.connect(audioCtx.destination);
           osc.frequency.value = freq;
-          osc.type = 'sine';
-          var startTime = baseTime + i * 0.03;
+          osc.type = isSpecial ? 'triangle' : 'sine'; // 特码用triangle更亮
+          var startTime = baseTime + i * noteGap;
           gain.gain.setValueAtTime(0, startTime);
-          gain.gain.linearRampToValueAtTime(volume, startTime + 0.02);
-          gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.5);
+          gain.gain.linearRampToValueAtTime(volume, startTime + 0.015);
+          gain.gain.exponentialRampToValueAtTime(0.001, startTime + decay);
           osc.start(startTime);
-          osc.stop(startTime + 0.5);
+          osc.stop(startTime + decay + 0.05);
         });
       } catch(e) {}
     });
@@ -960,7 +965,7 @@
     var colors = isSpecial
       ? ['#ffd700', '#ff8c00', '#ffffff', '#ff6b6b']
       : ['#ff8c00', '#ffb700', '#ffffff', '#ff5000'];
-    var count = isSpecial ? 11 : 10;
+    var count = isSpecial ? 18 : 14;
     var frag = document.createDocumentFragment();
     for (var i = 0; i < count; i++) {
       var p = document.createElement('div');
@@ -1127,7 +1132,7 @@
         updateBall(rollSequence[seqIdx], slowScales[slowIdx]);
         // 最后一帧：预调度结果音效（340ms后结果显示时准时播放，和竞彩脉冲预调度同一逻辑）
         if (slowIdx === SLOW_COUNT - 1) {
-          playResultSound(slowSpeeds[slowIdx] / 1000);
+          playResultSound(slowSpeeds[slowIdx] / 1000, ballObj.isSpecial);
         }
         seqIdx++;
         slowIdx++;
