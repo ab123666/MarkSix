@@ -675,7 +675,7 @@
   var audioCtx = null;
   var keepAliveStarted = false;
   // DOM元素
-  var drawBtn, resetBtn, clearBtn, ballsArea, drawInfo, historyList;
+  var drawBtn, resetBtn, clearBtn, ballsArea, drawInfo, historyList, todayDateEl, todayLuckyEl;
   // ===== 音频系统（静音保活 + 多时机激活 + 微信端优化） =====
   // 启动静音保活：持续播放gain极小的振荡器，防止浏览器/微信挂起AudioContext
   function startKeepAlive() {
@@ -812,14 +812,13 @@
     var day = now.getDate();
     var weekday = now.getDay();
     var weekNames = ['日', '一', '二', '三', '四', '五', '六'];
-    document.getElementById('todayDate').textContent =
+    todayDateEl.textContent =
       month + '月' + day + '日 周' + weekNames[weekday];
     var luckyNum = getTodayLuckyNumber();
-    var luckyEl = document.getElementById('todayLuckyNum');
-    luckyEl.textContent = luckyNum;
+    todayLuckyEl.textContent = luckyNum;
     // 根据数字显示对应的红/蓝/绿波颜色
-    luckyEl.classList.remove('color-red', 'color-blue', 'color-green');
-    luckyEl.classList.add('color-' + getBallColor(luckyNum));
+    todayLuckyEl.classList.remove('color-red', 'color-blue', 'color-green');
+    todayLuckyEl.classList.add('color-' + getBallColor(luckyNum));
   }
   // 六合彩生肖对应规则（每年更新，与当前年份关联）
   // 规则：数字1 = 当年生肖，数字2 = 上一个生肖，数字3 = 再上一个...（倒序）
@@ -1189,6 +1188,8 @@
     ballsArea = document.getElementById('ballsArea');
     drawInfo = document.getElementById('drawInfo');
     historyList = document.getElementById('historyList');
+    todayDateEl = document.getElementById('todayDate');
+    todayLuckyEl = document.getElementById('todayLuckyNum');
     // 预创建AudioContext（首次交互时只需resume，减少首次点击延迟）
     try {
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
