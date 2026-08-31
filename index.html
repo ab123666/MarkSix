@@ -59,7 +59,7 @@ html,body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft 
 .ball.result::before{animation:haloPulse 1s ease-out}
 @keyframes haloPulse{0%{box-shadow:0 0 0 0 rgba(255,255,255,0.8)}100%{box-shadow:0 0 0 30px rgba(255,255,255,0)}}
 @keyframes ballResult{0%{transform:scale(0.5);opacity:0}50%{transform:scale(1.1);opacity:1}100%{transform:scale(1);opacity:1}}
-.ball.result.special{animation:ballResult 0.6s cubic-bezier(0.34,1.56,0.64,1);box-shadow:0 0 0 2px rgba(255,215,0,0.8),0 3px 10px rgba(0,0,0,0.25),inset 0 -3px 6px rgba(0,0,0,0.2),inset 0 3px 6px rgba(255,255,255,0.3);will-change:transform}
+.ball.result.special{animation:ballResult 0.6s cubic-bezier(0.34,1.56,0.64,1);box-shadow:0 3px 10px rgba(0,0,0,0.25),inset 0 -3px 6px rgba(0,0,0,0.2),inset 0 3px 6px rgba(255,255,255,0.3);will-change:transform}
 @keyframes ballResultSpecial{0%{transform:scale(0.3);opacity:0}35%{transform:scale(1.3);opacity:1}60%{transform:scale(0.9)}80%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
 .ball.result .ball-num{animation:numPop 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.05s both}
 @keyframes numPop{0%{transform:scale(0.5)}60%{transform:scale(1.2)}100%{transform:scale(1)}}
